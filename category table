@@ -1,0 +1,87 @@
+ 3. Category table (M:M with Book via BookCategory)
+CREATE TABLE Category (
+    id   INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- 4. Book table (each book has one Author; M:M with Category)
+CREATE TABLE Book (
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    title          VARCHAR(255) NOT NULL,
+    isbn           CHAR(13)     NOT NULL UNIQUE,
+    publisher      VARCHAR(255),
+    published_date DATE,
+    author_id      INT NOT NULL,
+    FOREIGN KEY (author_id) REFERENCES Author(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+-- 5. Junction table for Book–Category (M:M)
+CREATE TABLE BookCategory (
+    book_id     INT NOT NULL,
+    category_id INT NOT NULL,
+    PRIMARY KEY (book_id, category_id),
+    FOREIGN KEY (book_id) REFERENCES Book(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES Category(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+-- 6. Patron (library member) table
+CREATE TABLE Patron (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    first_name       VARCHAR(100) NOT NULL,
+    last_name        VARCHAR(100) NOT NULL,
+    email            VARCHAR(255) NOT NULL UNIQUE,
+    phone            VARCHAR(20),
+    address          VARCHAR(255),
+    membership_date  DATE NOT NULL
+);
+
+-- 7. Staff table (librarians)
+CREATE TABLE Staff (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name  VARCHAR(100) NOT NULL,
+    email      VARCHAR(255) NOT NULL UNIQUE,
+    role       VARCHAR(50)  NOT NULL
+);
+
+-- 8. Loan table (records checkouts; 1:M from Patron, Book, Staff)
+CREATE TABLE Loan (
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    book_id        INT NOT NULL,
+    patron_id      INT NOT NULL,
+    staff_id       INT NOT NULL,
+    checkout_date  DATE NOT NULL ,
+    due_date       DATE NOT NULL,
+    return_date    DATE,
+    FOREIGN KEY (book_id)   REFERENCES Book(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    FOREIGN KEY (patron_id) REFERENCES Patron(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    FOREIGN KEY (staff_id)  REFERENCES Staff(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+-- 9. Reservation table (optional holds; 1:M from Patron and Book)
+CREATE TABLE Reservation (
+    id                INT AUTO_INCREMENT PRIMARY KEY,
+    book_id           INT NOT NULL,
+    patron_id         INT NOT NULL,
+    reservation_date  DATE NOT NULL ,
+    status            ENUM('ACTIVE','FULFILLED','CANCELLED')
+                        NOT NULL DEFAULT 'ACTIVE',
+    FOREIGN KEY (book_id)   REFERENCES Book(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    FOREIGN KEY (patron_id) REFERENCES Patron(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);      
